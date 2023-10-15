@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "start": "deno run src/mod.ts",
+    "start:watch": "deno run --watch src/mod.ts"
+  },
+  "fmt": {
+    "semiColons": false
+  }
+}
