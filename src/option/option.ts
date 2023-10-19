@@ -1,3 +1,5 @@
+export type OptionExpression<T> = Generator<Option<T> | T, Option<T> | T, T>
+
 export abstract class Option<T> {
   constructor(private _value: T) {}
 
@@ -37,6 +39,28 @@ export abstract class Option<T> {
 
   static from<T>(value: T): Option<T> {
     return value == undefined ? new None() : new Some(value)
+  }
+
+  static eval<T>(expression: () => OptionExpression<T>): Option<T> {
+    const iterable = expression()
+    let { value, done } = iterable.next()
+
+    while (!done) {
+      if (!(value instanceof Option)) {
+        const r = iterable.next(value)
+        value = r.value
+        done = r.done
+      } else if (value.isSome()) {
+        const r = iterable.next(value.value)
+        value = r.value
+        done = r.done
+      } else {
+        iterable.return(new None())
+        done = true
+      }
+    }
+
+    return value instanceof Option ? value : new Some(value)
   }
 }
 

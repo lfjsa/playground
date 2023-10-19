@@ -2,9 +2,11 @@ import {
   assert,
   assertEquals,
   assertFalse,
+  assertLessOrEqual,
   assertThrows,
 } from "std/assert/mod.ts"
-import { None, Option, Some } from "./option.ts"
+import { spy } from "std/testing/mock.ts"
+import { None, Option, OptionExpression, Some } from "./option.ts"
 
 Deno.test("Option", async (t) => {
   await t.step("isSome()", () => {
@@ -78,6 +80,45 @@ Deno.test("Option", async (t) => {
     assert(Option.from(0).isSome())
     assert(Option.from(null).isNone())
     assert(Option.from(undefined).isNone())
+  })
+
+  await t.step("eval()", async (t) => {
+    await t.step("some", () => {
+      assertEquals(
+        Option.eval(function* (): OptionExpression<string> {
+          const x = yield new Some("One")
+          const y = yield new Some("Two")
+
+          return new Some(`x: ${x}, y: ${y}`)
+        }).value,
+        "x: One, y: Two",
+      )
+
+      assertEquals(
+        Option.eval(function* (): OptionExpression<string> {
+          const x = yield "one"
+          const y = yield "two"
+
+          return `x: ${x}, y: ${y}`
+        }).value,
+        "x: one, y: two",
+      )
+    })
+
+    await t.step("none", () => {
+      const dummy = spy()
+      assert(
+        Option.eval(function* (): OptionExpression<string> {
+          const x = yield new None()
+          dummy()
+          const y = yield new Some("Two")
+
+          return new Some(`x: ${x}, y: ${y}`)
+        }).isNone(),
+      )
+
+      assertLessOrEqual(dummy.calls.length, 0)
+    })
   })
 
   await t.step("value", () => {
