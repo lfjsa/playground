@@ -1,1 +1,3 @@
-console.log("sup")
+import { init } from "./option/mod.ts"
+
+init()
