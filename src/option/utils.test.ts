@@ -1,11 +1,15 @@
-import { assert, assertEquals } from "std/assert/mod.ts"
+import { assert, assertEquals, assertFalse } from "std/assert/mod.ts"
 import { divide, tryOrNone } from "./utils.ts"
 
 Deno.test("tryOrNone()", async (t) => {
   await t.step("success", () => {
     const result = tryOrNone(() => "Noice")
 
-    assertEquals(result.value, "Noice")
+    if (result.isSome()) {
+      assertEquals(result.value, "Noice")
+    } else {
+      assertFalse(true, "unreachable")
+    }
   })
 
   await t.step("fail", () => {
