@@ -3,7 +3,6 @@ import {
   assertEquals,
   assertFalse,
   assertLessOrEqual,
-  assertThrows,
 } from "std/assert/mod.ts"
 import { spy } from "std/testing/mock.ts"
 import { None, Option, OptionExpression, Some } from "./option.ts"
@@ -14,6 +13,8 @@ Deno.test("Option", async (t) => {
 
     assert(some.isSome())
     assertFalse(some.isNone())
+
+    if (some.isSome()) assertEquals(some.value, "Hello")
   })
 
   await t.step("isNone()", () => {
@@ -21,6 +22,11 @@ Deno.test("Option", async (t) => {
 
     assert(none.isNone())
     assertFalse(none.isSome())
+
+    if (none.isNone()) {
+      // @ts-expect-error: `value` does not exist on None
+      assertFalse(none.value)
+    }
   })
 
   await t.step("map()", () => {
@@ -84,25 +90,23 @@ Deno.test("Option", async (t) => {
 
   await t.step("eval()", async (t) => {
     await t.step("some", () => {
-      assertEquals(
-        Option.eval(function* (): OptionExpression<string> {
-          const x = yield new Some("One")
-          const y = yield new Some("Two")
+      Option.eval(function* (): OptionExpression<string> {
+        const x = yield new Some("One")
+        const y = yield new Some("Two")
 
-          return new Some(`x: ${x}, y: ${y}`)
-        }).value,
-        "x: One, y: Two",
-      )
+        return new Some(`x: ${x}, y: ${y}`)
+      }).map((value) => {
+        assertEquals(value, "x: One, y: Two")
+      })
 
-      assertEquals(
-        Option.eval(function* (): OptionExpression<string> {
-          const x = yield "one"
-          const y = yield "two"
+      Option.eval(function* (): OptionExpression<string> {
+        const x = yield "one"
+        const y = yield "two"
 
-          return `x: ${x}, y: ${y}`
-        }).value,
-        "x: one, y: two",
-      )
+        return `x: ${x}, y: ${y}`
+      }).map((value) => {
+        assertEquals(value, "x: one, y: two")
+      })
     })
 
     await t.step("none", () => {
@@ -126,14 +130,8 @@ Deno.test("Option", async (t) => {
     if (none.isSome()) {
       assertFalse(none.value, "unreachable")
     } else {
-      assertThrows(
-        () => {
-          const n: Option<string> = none
-          n.value
-        },
-        Error,
-        "fak",
-      )
+      // @ts-expect-error: `value` does not exist on None
+      assertFalse(none.value)
     }
 
     const some: Option<string> = new Some("Hello")

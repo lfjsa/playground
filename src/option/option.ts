@@ -1,12 +1,7 @@
 export type OptionExpression<T> = Generator<Option<T> | T, Option<T> | T, T>
 
 export abstract class Option<T> {
-  constructor(private _value: T) {}
-
-  get value(): T | never {
-    if (this.isSome()) return this._value
-    throw new Error("fak")
-  }
+  constructor(protected _value: T) {}
 
   isSome(): this is Some<T> {
     return this instanceof Some
@@ -67,6 +62,10 @@ export abstract class Option<T> {
 export class Some<T> extends Option<T> {
   constructor(value: T) {
     super(value)
+  }
+
+  get value(): T {
+    return this._value
   }
 }
 
