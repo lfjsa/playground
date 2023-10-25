@@ -20,9 +20,19 @@ function anystring(a: any, b: any) {
   })
 }
 
+// deno-lint-ignore no-explicit-any
+async function thenable(a: any, b: any) {
+  const aa = await tryOrNone(() => a.toUpperCase())
+  const bb = await tryOrNone(() => b.toUpperCase())
+
+  return `${aa} ${bb}`
+}
+
 export function init() {
   console.log("Division: ", division(10, 0, 10))
   console.log("Division: ", division(10, 2, 2))
   console.log("Anystring: ", anystring(1, "Hello"))
   console.log("Anystring: ", anystring("Hello", "Bastard"))
+  thenable("Hello", "Bastard").then((v) => console.log("Thenable: ", v))
+  thenable(1, "Hello").then((v) => console.log("Thenable: ", v))
 }
